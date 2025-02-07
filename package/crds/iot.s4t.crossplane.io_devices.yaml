@@ -4,18 +4,18 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.14.0
-  name: mytypes.sample.template.crossplane.io
+  name: devices.iot.s4t.crossplane.io
 spec:
-  group: sample.template.crossplane.io
+  group: iot.s4t.crossplane.io
   names:
     categories:
     - crossplane
     - managed
-    - template
-    kind: MyType
-    listKind: MyTypeList
-    plural: mytypes
-    singular: mytype
+    - s4t
+    kind: Device
+    listKind: DeviceList
+    plural: devices
+    singular: device
   scope: Cluster
   versions:
   - additionalPrinterColumns:
@@ -34,7 +34,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: A MyType is an example API type.
+        description: A Device is an example API type.
         properties:
           apiVersion:
             description: |-
@@ -54,7 +54,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: A MyTypeSpec defines the desired state of a MyType.
+            description: A DeviceSpec defines the desired state of a Device.
             properties:
               deletionPolicy:
                 default: Delete
@@ -71,12 +71,54 @@ spec:
                 - Delete
                 type: string
               forProvider:
-                description: MyTypeParameters are the configurable fields of a MyType.
+                description: DeviceParameters are the configurable fields of a Device.
                 properties:
-                  configurableField:
+                  agent:
                     type: string
-                required:
-                - configurableField
+                  code:
+                    type: string
+                  location:
+                    items:
+                      properties:
+                        altitude:
+                          type: string
+                        latitude:
+                          type: string
+                        longitude:
+                          type: string
+                        updated_at:
+                          items:
+                            type: object
+                            x-kubernetes-preserve-unknown-fields: true
+                          type: array
+                      required:
+                      - altitude
+                      - latitude
+                      - longitude
+                      type: object
+                    type: array
+                  lr_version:
+                    type: string
+                  name:
+                    type: string
+                  plugins:
+                    items:
+                      type: string
+                    type: array
+                  services:
+                    items:
+                      type: string
+                    type: array
+                  session:
+                    type: string
+                  status:
+                    type: string
+                  type:
+                    type: string
+                  uuid:
+                    type: string
+                  wstun_ip:
+                    type: string
                 type: object
               managementPolicies:
                 default:
@@ -246,17 +288,13 @@ spec:
             - forProvider
             type: object
           status:
-            description: A MyTypeStatus represents the observed state of a MyType.
+            description: A DeviceStatus represents the observed state of a Device.
             properties:
               atProvider:
-                description: MyTypeObservation are the observable fields of a MyType.
+                description: DeviceObservation are the observable fields of a Device.
                 properties:
-                  configurableField:
-                    type: string
                   observableField:
                     type: string
-                required:
-                - configurableField
                 type: object
               conditions:
                 description: Conditions of the resource.
@@ -311,6 +349,10 @@ spec:
                   it can not recover from without human intervention.
                 format: int64
                 type: integer
+              status:
+                type: string
+              uuid:
+                type: string
             type: object
         required:
         - spec

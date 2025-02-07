@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package v1alpha1 contains the v1alpha1 group Sample resources of the Template provider.
+// Package v1alpha1 contains the v1alpha1 group Sample resources of the S4T provider.
 // +kubebuilder:object:generate=true
-// +groupName=sample.template.crossplane.io
+// +groupName=iot.s4t.crossplane.io
 // +versionName=v1alpha1
 package v1alpha1
 
@@ -27,7 +27,7 @@ import (
 
 // Package type metadata.
 const (
-	Group   = "sample.template.crossplane.io"
+	Group   = "iot.s4t.crossplane.io"
 	Version = "v1alpha1"
 )
 
