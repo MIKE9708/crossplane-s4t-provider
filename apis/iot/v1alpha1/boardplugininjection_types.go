@@ -47,6 +47,8 @@ type BoardPluginInjectionSpec struct {
 type BoardPluginInjectionStatus struct {
 	xpv1.ResourceStatus `json:",inline"`
 	AtProvider          BoardPluginInjectionObservation `json:"atProvider,omitempty"`
+	BoardUuid           string                          `json:"boardUuid,omitempty"`
+	PluginUuid          string                          `json:"pluginUuid,omitempty"`
 }
 
 // +kubebuilder:object:root=true

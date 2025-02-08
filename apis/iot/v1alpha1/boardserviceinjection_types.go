@@ -47,6 +47,8 @@ type BoardServiceInjectionSpec struct {
 type BoardServiceInjectionStatus struct {
 	xpv1.ResourceStatus `json:",inline"`
 	AtProvider          BoardServiceInjectionObservation `json:"atProvider,omitempty"`
+	BoardUuid           string                           `json:"boardUuid,omitempty"`
+	ServiceUuid         string                           `json:"serviceUuid,omitempty"`
 }
 
 // +kubebuilder:object:root=true

@@ -37,6 +37,9 @@ type ServiceParameters struct {
 // ServiceObservation are the observable fields of a Service.
 type ServiceObservation struct {
 	ObservableField string `json:"observableField,omitempty"`
+	Uuid            string `json:"uuid,omitempty"`
+	Port            uint   `json:"port"`
+	Protocol        string `json:"protocol"`
 }
 
 // A ServiceSpec defines the desired state of a Service.
@@ -49,6 +52,7 @@ type ServiceSpec struct {
 type ServiceStatus struct {
 	xpv1.ResourceStatus `json:",inline"`
 	AtProvider          ServiceObservation `json:"atProvider,omitempty"`
+	Uuid                string             `json:"uuid,omitempty"`
 }
 
 // +kubebuilder:object:root=true
