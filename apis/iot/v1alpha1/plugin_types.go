@@ -28,7 +28,7 @@ import (
 
 // PluginParameters are the configurable fields of a Plugin.
 type PluginParameters struct {
-	Uuid       string               `json:"name"`
+	Uuid       string               `json:"uuid"`
 	Name       string               `json:"name"`
 	Parameters runtime.RawExtension `json:"parameters,omitempty"`
 	Code       string               `json:"code"`
@@ -37,7 +37,8 @@ type PluginParameters struct {
 
 // PluginObservation are the observable fields of a Plugin.
 type PluginObservation struct {
-	ObservableField string `json:"observableField,omitempty"`
+	Code string `json:"code"`
+	Uuid string `json:"uuid"`
 }
 
 // A PluginSpec defines the desired state of a Plugin.

@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/MIKE9708/s4t-sdk-go/pkg/api"
 	"github.com/MIKE9708/s4t-sdk-go/pkg/api/data/service"
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 	"github.com/pkg/errors"
@@ -58,7 +59,7 @@ var (
 		s4t := s4t.Client{}
 		s4t_client, err := s4t.GetClientConnection()
 		return &S4TService{
-			S4tClient: &s4t_client,
+			S4tClient: s4t_client,
 		}, err
 	}
 )
@@ -137,11 +138,26 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	fmt.Printf("Observing: %+v", cr)
 	service, err := c.service.S4tClient.GetService(cr.Spec.ForProvider.Uuid)
 	if err != nil {
-		log.Printf("####ERROR-LOG#### Error s4t client Board Get %q", err)
+		log.Printf("####ERROR-LOG#### Error s4t client Service Get %q", err)
 		return managed.ExternalObservation{}, err
 	}
 	if service.Uuid == "" {
 		return managed.ExternalObservation{ResourceExists: false}, nil
+	}
+
+	update := false
+
+	if cr.Spec.ForProvider.Name != service.Name {
+		update = true
+	}
+	if cr.Spec.ForProvider.Port != service.Port {
+		update = true
+	}
+	if cr.Spec.ForProvider.Protocol != service.Protocol {
+		update = true
+	}
+	if update {
+		return managed.ExternalObservation{ResourceUpToDate: false}, nil
 	}
 
 	cr.Status.SetConditions(xpv1.Available())
@@ -168,7 +184,7 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 	}
 	service, err := c.service.S4tClient.CreateService(srvc)
 	if err != nil {
-		log.Printf("####ERROR-LOG#### Error s4t client Plugin Create %q", err)
+		log.Printf("####ERROR-LOG#### Error s4t client Service Create %q", err)
 	}
 
 	cr.Spec.ForProvider.Uuid = service.Uuid
@@ -187,6 +203,19 @@ func (c *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 	}
 
 	fmt.Printf("Updating: %+v", cr)
+	req := map[string]interface{}{
+		"name":     cr.Spec.ForProvider.Name,
+		"port":     cr.Spec.ForProvider.Port,
+		"protocol": cr.Spec.ForProvider.Protocol,
+	}
+	resp, err := c.service.S4tClient.PatchService(cr.Spec.ForProvider.Uuid, req)
+	if err != nil {
+		log.Printf("####ERROR-LOG#### Error s4t client Plugin Update %q", err)
+	}
+
+	cr.Spec.ForProvider.Protocol = resp.Protocol
+	cr.Spec.ForProvider.Port = resp.Port
+	cr.Spec.ForProvider.Name = resp.Name
 
 	return managed.ExternalUpdate{
 		ConnectionDetails: managed.ConnectionDetails{},
@@ -203,7 +232,7 @@ func (c *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 	err := c.service.S4tClient.DeleteService(cr.Spec.ForProvider.Uuid)
 	if err != nil {
-		log.Printf("####ERROR-LOG#### Error s4t client Plugin Delete %q", err)
+		log.Printf("####ERROR-LOG#### Error s4t client Service Delete %q", err)
 	}
 	return err
 }

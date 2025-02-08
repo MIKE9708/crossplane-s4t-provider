@@ -55,7 +55,8 @@ type DeviceParameters struct {
 
 // DeviceObservation are the observable fields of a Device.
 type DeviceObservation struct {
-	ObservableField string `json:"observableField,omitempty"`
+	Code string `json:"code,omitempty"`
+	Uuid string `json:"uuid,omitempty"`
 }
 
 // A DeviceSpec defines the desired state of a Device.

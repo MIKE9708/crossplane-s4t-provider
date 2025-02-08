@@ -19,6 +19,7 @@ package boardplugininjection
 import (
 	"context"
 	"fmt"
+	"github.com/MIKE9708/s4t-sdk-go/pkg/api"
 	"github.com/crossplane/crossplane-runtime/pkg/connection"
 	"github.com/crossplane/crossplane-runtime/pkg/controller"
 	"github.com/crossplane/crossplane-runtime/pkg/event"
@@ -48,11 +49,11 @@ type S4TService struct {
 }
 
 var (
-	newNoOpService = func(_ []byte) (*S4TService, error) {
+	newS4TService = func(_ []byte) (*S4TService, error) {
 		s4t := s4t.Client{}
 		s4t_client, err := s4t.GetClientConnection()
 		return &S4TService{
-			S4tClient: &s4t_client,
+			S4tClient: s4t_client,
 		}, err
 	}
 )
@@ -137,8 +138,8 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	}
 
 	found := false
-	for plugin := range injectedPlugin {
-		if plugin.Uuid == cr.Spec.ForProvider.PluginUuid {
+	for _, plugin := range injectedPlugin {
+		if plugin.UUID == cr.Spec.ForProvider.PluginUuid {
 			found = true
 			break
 		}
@@ -161,7 +162,7 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 	}
 
 	fmt.Printf("Creating: %+v", cr)
-	injectedPlugin, err := c.service.S4tClient.InjectPLuginBoard(
+	err := c.service.S4tClient.InjectPLuginBoard(
 		cr.Spec.ForProvider.BoardUuid,
 		map[string]interface{}{
 			"plugin": cr.Spec.ForProvider.PluginUuid,
@@ -191,7 +192,7 @@ func (c *external) Delete(ctx context.Context, mg resource.Managed) error {
 	err := c.service.S4tClient.RemoveInjectedPlugin(cr.Spec.ForProvider.PluginUuid, cr.Spec.ForProvider.BoardUuid)
 	if err != nil {
 		log.Printf("####ERROR-LOG#### Error s4t client BoardPlugin Delete %q", err)
-		return managed.ExternalObservation{}, err
+		return err
 	}
 	return nil
 }

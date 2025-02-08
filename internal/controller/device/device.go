@@ -19,8 +19,7 @@ package device
 import (
 	"context"
 	"fmt"
-	"log"
-
+	"github.com/MIKE9708/s4t-sdk-go/pkg/api"
 	"github.com/MIKE9708/s4t-sdk-go/pkg/api/data/board"
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 	"github.com/crossplane/crossplane-runtime/pkg/connection"
@@ -31,6 +30,7 @@ import (
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/types"
+	"log"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -58,7 +58,7 @@ var (
 		s4t := s4t.Client{}
 		s4t_client, err := s4t.GetClientConnection()
 		return &S4TService{
-			S4tClient: &s4t_client,
+			S4tClient: s4t_client,
 		}, err
 	}
 )
@@ -191,16 +191,16 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 		board.Location[index].Latitude = location.Latitude
 		board.Location[index].Longitude = location.Longitude
 	}
-	board, err := c.service.S4tClient.CreateBoard(board)
+	res, err := c.service.S4tClient.CreateBoard(board)
 	if err != nil {
 		log.Printf("####ERROR-LOG#### http.ResponseWriter, r *http.Request#### Error s4t client Board Create %q", err)
 	}
 
-	cr.Spec.ForProvider.Uuid = board.Uuid
-	cr.Spec.ForProvider.Type = board.Type
-	cr.Spec.ForProvider.Agent = board.Agent
-	cr.Spec.ForProvider.Status = board.Status
-	cr.Spec.ForProvider.Session = board.Session
+	cr.Spec.ForProvider.Uuid = res.Uuid
+	cr.Spec.ForProvider.Type = res.Type
+	cr.Spec.ForProvider.Agent = res.Agent
+	cr.Spec.ForProvider.Status = res.Status
+	cr.Spec.ForProvider.Session = res.Session
 
 	return managed.ExternalCreation{
 		// Optionally return any details that may be required to connect to the
@@ -223,6 +223,7 @@ func (c *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 	if err != nil {
 		log.Printf("####ERROR-LOG#### Error s4t client Board Update %q", err)
 	}
+
 	cr.Spec.ForProvider.Uuid = resp.Uuid
 	cr.Spec.ForProvider.Code = resp.Code
 	cr.Spec.ForProvider.Status = resp.Status

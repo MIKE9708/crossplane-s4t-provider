@@ -19,6 +19,8 @@ package plugin
 import (
 	"context"
 	"fmt"
+	"github.com/MIKE9708/s4t-sdk-go/pkg/api"
+	"github.com/MIKE9708/s4t-sdk-go/pkg/api/data/plugin"
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 	"github.com/crossplane/crossplane-runtime/pkg/connection"
 	"github.com/crossplane/crossplane-runtime/pkg/controller"
@@ -26,16 +28,14 @@ import (
 	"github.com/crossplane/crossplane-runtime/pkg/ratelimiter"
 	"github.com/crossplane/crossplane-runtime/pkg/reconciler/managed"
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
+	"github.com/crossplane/provider-s4t/apis/iot/v1alpha1"
+	apisv1alpha1 "github.com/crossplane/provider-s4t/apis/v1alpha1"
+	"github.com/crossplane/provider-s4t/internal/features"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"log"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/MIKE9708/s4t-sdk-go/pkg/api/data/plugin"
-	"github.com/crossplane/provider-s4t/apis/iot/v1alpha1"
-	apisv1alpha1 "github.com/crossplane/provider-s4t/apis/v1alpha1"
-	"github.com/crossplane/provider-s4t/internal/features"
 )
 
 const (
@@ -43,8 +43,7 @@ const (
 	errTrackPCUsage = "cannot track ProviderConfig usage"
 	errGetPC        = "cannot get ProviderConfig"
 	errGetCreds     = "cannot get credentials"
-
-	errNewClient = "cannot create new Service"
+	errNewClient    = "cannot create new Service"
 )
 
 type S4TService struct {
@@ -52,12 +51,11 @@ type S4TService struct {
 }
 
 var (
-	newNoOpService = func(_ []byte) (interface{}, error) { return &NoOpService{}, nil }
-	newS4TService  = func(_ []byte) (*S4TService, error) {
+	newS4TService = func(_ []byte) (*S4TService, error) {
 		s4t := s4t.Client{}
 		s4t_client, err := s4t.GetClientConnection()
 		return &S4TService{
-			S4tClient: &s4t_client,
+			S4tClient: s4t_client,
 		}, err
 	}
 )
@@ -140,21 +138,10 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		log.Printf("####ERROR-LOG#### Error s4t client Plugin Get %q", err)
 		return managed.ExternalObservation{}, err
 	}
-	if plugin.Uuid == "" {
+	if plugin.UUID == "" {
 		return managed.ExternalObservation{ResourceExists: false}, nil
 	}
-
-	updateRsrc := false
-	if cr.Spec.ForProvider.Parameters != plugin.Parameters {
-		updateRsrc = true
-	}
 	if cr.Spec.ForProvider.Code != plugin.Code {
-		updateRsrc = true
-	}
-	if cr.Spec.ForProvider.Version != plugin.Version {
-		updateRsrc = true
-	}
-	if updateRsrc {
 		return managed.ExternalObservation{ResourceUpToDate: false}, nil
 	}
 
@@ -186,10 +173,8 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 		log.Printf("####ERROR-LOG#### Error s4t client Plugin Create %q", err)
 	}
 
-	cr.Spec.ForProvider.Uuid = plugin.Uuid
+	cr.Spec.ForProvider.Uuid = plugin.UUID
 	return managed.ExternalCreation{
-		// Optionally return any details that may be required to connect to the
-		// external resource. These will be stored as the connection secret.
 		ConnectionDetails: managed.ConnectionDetails{},
 	}, err
 }
@@ -201,24 +186,15 @@ func (c *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 	}
 	fmt.Printf("Updating: %+v", cr)
 
-	plugin, err := c.service.S4tClient.getPlugin(cr.Spec.ForProvider.Uuid)
-	if err != nil {
-		log.Printf("####ERROR-LOG#### Error s4t client Plugin Get %q", err)
+	req := map[string]interface{}{
+		"name":       cr.Spec.ForProvider.Name,
+		"parameters": cr.Spec.ForProvider.Parameters,
+		"code":       cr.Spec.ForProvider.Code,
+		"version":    cr.Spec.ForProvider.Version,
 	}
-
-	if cr.Spec.ForProvider.Parameters != plugin.Parameters ||
-		cr.Spec.ForProvider.Code != plugin.Code ||
-		cr.Spec.ForProvider.Version != plugin.Version {
-		req := plugin.PluginReq{
-			Parameters: cr.Spec.ForProvider.Parameters,
-			Code:       cr.Spec.ForProvider.Code,
-			// CHeck if is a good parameter
-			// Version:    cr.Spec.ForProvider.Version,
-		}
-		_, err := c.service.S4tClient.PatchPlugin(cr.Spec.ForProvider.Uuid, req)
-		if err != nil {
-			log.Printf("####ERROR-LOG#### Error s4t client Plugin Update %q", err)
-		}
+	_, err := c.service.S4tClient.PacthPlugin(cr.Spec.ForProvider.Uuid, req)
+	if err != nil {
+		log.Printf("####ERROR-LOG#### Error s4t client Plugin Update %q", err)
 	}
 
 	return managed.ExternalUpdate{

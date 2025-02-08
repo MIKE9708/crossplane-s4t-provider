@@ -19,22 +19,20 @@ package boardserviceinjection
 import (
 	"context"
 	"fmt"
-
-	"github.com/pkg/errors"
-	"k8s.io/apimachinery/pkg/types"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
+	"github.com/MIKE9708/s4t-sdk-go/pkg/api"
 	"github.com/crossplane/crossplane-runtime/pkg/connection"
 	"github.com/crossplane/crossplane-runtime/pkg/controller"
 	"github.com/crossplane/crossplane-runtime/pkg/event"
 	"github.com/crossplane/crossplane-runtime/pkg/ratelimiter"
 	"github.com/crossplane/crossplane-runtime/pkg/reconciler/managed"
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
-
 	"github.com/crossplane/provider-s4t/apis/iot/v1alpha1"
 	apisv1alpha1 "github.com/crossplane/provider-s4t/apis/v1alpha1"
 	"github.com/crossplane/provider-s4t/internal/features"
+	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/types"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -51,11 +49,11 @@ type S4TService struct {
 }
 
 var (
-	newNoOpService = func(_ []byte) (*S4TService, error) {
+	newS4TService = func(_ []byte) (*S4TService, error) {
 		s4t := s4t.Client{}
 		s4t_client, err := s4t.GetClientConnection()
 		return &S4TService{
-			S4tClient: &s4t_client,
+			S4tClient: s4t_client,
 		}, err
 	}
 )
@@ -130,12 +128,8 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 	return &external{service: svc}, nil
 }
 
-// An ExternalClient observes, then either creates, updates, or deletes an
-// external resource to ensure it reflects the managed resource's desired state.
 type external struct {
-	// A 'client' used to connect to the external resource API. In practice this
-	// would be something like an AWS SDK client.
-	service interface{}
+	service *S4TService
 }
 
 func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.ExternalObservation, error) {
