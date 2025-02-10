@@ -51,6 +51,7 @@ type PluginSpec struct {
 type PluginStatus struct {
 	xpv1.ResourceStatus `json:",inline"`
 	AtProvider          PluginObservation `json:"atProvider,omitempty"`
+	Uuid                string            `json:"uuid"`
 }
 
 // +kubebuilder:object:root=true

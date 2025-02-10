@@ -80,11 +80,14 @@ spec:
                   parameters:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
+                  uuid:
+                    type: string
                   version:
                     type: string
                 required:
                 - code
                 - name
+                - uuid
                 type: object
               managementPolicies:
                 default:
@@ -259,8 +262,13 @@ spec:
               atProvider:
                 description: PluginObservation are the observable fields of a Plugin.
                 properties:
-                  observableField:
+                  code:
                     type: string
+                  uuid:
+                    type: string
+                required:
+                - code
+                - uuid
                 type: object
               conditions:
                 description: Conditions of the resource.
@@ -315,6 +323,10 @@ spec:
                   it can not recover from without human intervention.
                 format: int64
                 type: integer
+              uuid:
+                type: string
+            required:
+            - uuid
             type: object
         required:
         - spec

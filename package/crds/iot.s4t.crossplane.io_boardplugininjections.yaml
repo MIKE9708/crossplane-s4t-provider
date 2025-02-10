@@ -260,6 +260,8 @@ spec:
                   pluginUuid:
                     type: string
                 type: object
+              boardUuid:
+                type: string
               conditions:
                 description: Conditions of the resource.
                 items:
@@ -313,6 +315,8 @@ spec:
                   it can not recover from without human intervention.
                 format: int64
                 type: integer
+              pluginUuid:
+                type: string
             type: object
         required:
         - spec

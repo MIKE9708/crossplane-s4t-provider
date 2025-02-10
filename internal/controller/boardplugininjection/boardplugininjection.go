@@ -30,7 +30,7 @@ import (
 	apisv1alpha1 "github.com/crossplane/provider-s4t/apis/v1alpha1"
 	"github.com/crossplane/provider-s4t/internal/features"
 	"github.com/pkg/errors"
-	"k8s.io/apimachinery/pkg/types"
+	_ "k8s.io/apimachinery/pkg/types"
 	"log"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -92,32 +92,33 @@ type connector struct {
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
-	cr, ok := mg.(*v1alpha1.BoardPluginInjection)
-	if !ok {
-		return nil, errors.New(errNotBoardPluginInjection)
-	}
+	// cr, ok := mg.(*v1alpha1.BoardPluginInjection)
+	// if !ok {
+	// 	return nil, errors.New(errNotBoardPluginInjection)
+	// }
 
-	if err := c.usage.Track(ctx, mg); err != nil {
-		return nil, errors.Wrap(err, errTrackPCUsage)
-	}
+	// if err := c.usage.Track(ctx, mg); err != nil {
+	// 	return nil, errors.Wrap(err, errTrackPCUsage)
+	// }
 
-	pc := &apisv1alpha1.ProviderConfig{}
-	if err := c.kube.Get(ctx, types.NamespacedName{Name: cr.GetProviderConfigReference().Name}, pc); err != nil {
-		return nil, errors.Wrap(err, errGetPC)
-	}
+	// pc := &apisv1alpha1.ProviderConfig{}
+	// if err := c.kube.Get(ctx, types.NamespacedName{Name: cr.GetProviderConfigReference().Name}, pc); err != nil {
+	// 	return nil, errors.Wrap(err, errGetPC)
+	// }
 
-	cd := pc.Spec.Credentials
-	data, err := resource.CommonCredentialExtractor(ctx, cd.Source, c.kube, cd.CommonCredentialSelectors)
-	if err != nil {
-		return nil, errors.Wrap(err, errGetCreds)
-	}
+	// cd := pc.Spec.Credentials
+	// data, err := resource.CommonCredentialExtractor(ctx, cd.Source, c.kube, cd.CommonCredentialSelectors)
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, errGetCreds)
+	// }
 
-	svc, err := c.newServiceFn(data)
-	if err != nil {
-		return nil, errors.Wrap(err, errNewClient)
-	}
+	// svc, err := c.newServiceFn(data)
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, errNewClient)
+	// }
 
-	return &external{service: svc}, nil
+	// return &external{service: svc}, nil
+	return nil, nil
 }
 
 type external struct {

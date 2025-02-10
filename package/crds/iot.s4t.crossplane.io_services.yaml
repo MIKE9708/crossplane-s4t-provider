@@ -263,6 +263,15 @@ spec:
                 properties:
                   observableField:
                     type: string
+                  port:
+                    type: integer
+                  protocol:
+                    type: string
+                  uuid:
+                    type: string
+                required:
+                - port
+                - protocol
                 type: object
               conditions:
                 description: Conditions of the resource.
@@ -317,6 +326,8 @@ spec:
                   it can not recover from without human intervention.
                 format: int64
                 type: integer
+              uuid:
+                type: string
             type: object
         required:
         - spec

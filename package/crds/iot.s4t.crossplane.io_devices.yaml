@@ -293,7 +293,9 @@ spec:
               atProvider:
                 description: DeviceObservation are the observable fields of a Device.
                 properties:
-                  observableField:
+                  code:
+                    type: string
+                  uuid:
                     type: string
                 type: object
               conditions:
