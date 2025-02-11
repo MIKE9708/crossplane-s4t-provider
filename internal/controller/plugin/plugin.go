@@ -19,8 +19,14 @@ package plugin
 import (
 	"context"
 	"fmt"
-	"github.com/MIKE9708/s4t-sdk-go/pkg/api"
-	"github.com/MIKE9708/s4t-sdk-go/pkg/api/data/plugin"
+	"log"
+
+	"encoding/json"
+	s4t "github.com/MIKE9708/s4t-sdk-go/pkg/api"
+	read_config "github.com/MIKE9708/s4t-sdk-go/pkg/read_conf"
+
+	plugins "github.com/MIKE9708/s4t-sdk-go/pkg/api/data/plugin"
+
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 	"github.com/crossplane/crossplane-runtime/pkg/connection"
 	"github.com/crossplane/crossplane-runtime/pkg/controller"
@@ -32,8 +38,8 @@ import (
 	apisv1alpha1 "github.com/crossplane/provider-s4t/apis/v1alpha1"
 	"github.com/crossplane/provider-s4t/internal/features"
 	"github.com/pkg/errors"
-	_ "k8s.io/apimachinery/pkg/types"
-	"log"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -51,9 +57,18 @@ type S4TService struct {
 }
 
 var (
-	newS4TService = func(_ []byte) (*S4TService, error) {
-		s4t := s4t.Client{}
-		s4t_client, err := s4t.GetClientConnection()
+	newS4TService = func(creds []byte) (*S4TService, error) {
+		var result map[string]string
+		err := json.Unmarshal(creds, &result)
+		if err != nil {
+			return nil, errors.Wrap(err, errNewClient)
+		}
+		auth_req := read_config.FormatAuthRequ(
+			result["username"],
+			result["password"],
+			result["domain"],
+		)
+		s4t_client, err := s4t.GetClientConnection(*auth_req)
 		return &S4TService{
 			S4tClient: s4t_client,
 		}, err
@@ -94,32 +109,29 @@ type connector struct {
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
-	// cr, ok := mg.(*v1alpha1.Plugin)
-	// if !ok {
-	// 	return nil, errors.New(errNotPlugin)
-	// }
-	// if err := c.usage.Track(ctx, mg); err != nil {
-	// 	return nil, errors.Wrap(err, errTrackPCUsage)
-	// }
+	_, ok := mg.(*v1alpha1.Plugin)
+	if !ok {
+		return nil, errors.New(errNotPlugin)
+	}
 
-	// pc := &apisv1alpha1.ProviderConfig{}
-	// if err := c.kube.Get(ctx, types.NamespacedName{Name: cr.GetProviderConfigReference().Name}, pc); err != nil {
-	// 	return nil, errors.Wrap(err, errGetPC)
-	// }
-
-	// cd := pc.Spec.Credentials
-	// data, err := resource.CommonCredentialExtractor(ctx, cd.Source, c.kube, cd.CommonCredentialSelectors)
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, errGetCreds)
-	// }
-
-	// svc, err := c.newServiceFn(data)
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, errNewClient)
-	// }
-
-	// return &external{service: svc}, nil
-	return nil, nil
+	if err := c.usage.Track(ctx, mg); err != nil {
+		return nil, errors.Wrap(err, errTrackPCUsage)
+	}
+	// cr.GetProviderConfigReference().Name
+	pc_domain := &apisv1alpha1.ProviderConfig{}
+	if err := c.kube.Get(ctx, types.NamespacedName{Name: "s4t-provider-domain"}, pc_domain); err != nil {
+		return nil, errors.Wrap(err, errGetPC)
+	}
+	cd_domain := pc_domain.Spec.Credentials
+	data_domain, err := resource.CommonCredentialExtractor(ctx, cd_domain.Source, c.kube, cd_domain.CommonCredentialSelectors)
+	if err != nil {
+		return nil, errors.Wrap(err, errGetCreds)
+	}
+	svc, err := c.newServiceFn(data_domain)
+	if err != nil {
+		return nil, errors.Wrap(err, errNewClient)
+	}
+	return &external{service: svc}, err
 }
 
 type external struct {
@@ -143,7 +155,7 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		return managed.ExternalObservation{ResourceExists: false}, nil
 	}
 	if cr.Spec.ForProvider.Code != plugin.Code {
-		return managed.ExternalObservation{ResourceUpToDate: false}, nil
+		return managed.ExternalObservation{ResourceUpToDate: false, ResourceExists: true}, nil
 	}
 
 	cr.Status.SetConditions(xpv1.Available())
@@ -164,9 +176,10 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 
 	req := plugins.PluginReq{
 		Name:       cr.Spec.ForProvider.Name,
-		Parameters: cr.Spec.ForProvider.Parameters,
-		Code:       cr.Spec.ForProvider.Code,
-		Version:    cr.Spec.ForProvider.Version,
+		Parameters: runtime.RawExtension{Raw: []byte(`{}`)},
+		// cr.Spec.ForProvider.Parameters,
+		Code: cr.Spec.ForProvider.Code,
+		// Version:    cr.Spec.ForProvider.Version,
 	}
 
 	plugin, err := c.service.S4tClient.CreatePlugin(req)
@@ -216,3 +229,4 @@ func (c *external) Delete(ctx context.Context, mg resource.Managed) error {
 	}
 	return err
 }
+

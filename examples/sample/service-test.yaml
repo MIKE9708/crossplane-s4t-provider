@@ -1,0 +1,15 @@
+apiVersion: iot.s4t.crossplane.io/v1alpha1
+kind: Service
+metadata:
+  name: example-service
+spec:
+  forProvider:
+    # Required fields from the CRD
+    name: my-service
+    port: 8090
+    protocol: tcp
+  providerConfigRef:
+    name: s4t-provider-domain
+  deletionPolicy: Delete
+
+

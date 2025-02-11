@@ -19,7 +19,12 @@ package boardserviceinjection
 import (
 	"context"
 	"fmt"
-	"github.com/MIKE9708/s4t-sdk-go/pkg/api"
+	"log"
+
+	"encoding/json"
+	s4t "github.com/MIKE9708/s4t-sdk-go/pkg/api"
+	read_config "github.com/MIKE9708/s4t-sdk-go/pkg/read_conf"
+
 	"github.com/crossplane/crossplane-runtime/pkg/connection"
 	"github.com/crossplane/crossplane-runtime/pkg/controller"
 	"github.com/crossplane/crossplane-runtime/pkg/event"
@@ -30,7 +35,7 @@ import (
 	apisv1alpha1 "github.com/crossplane/provider-s4t/apis/v1alpha1"
 	"github.com/crossplane/provider-s4t/internal/features"
 	"github.com/pkg/errors"
-	_ "k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -40,8 +45,7 @@ const (
 	errTrackPCUsage             = "cannot track ProviderConfig usage"
 	errGetPC                    = "cannot get ProviderConfig"
 	errGetCreds                 = "cannot get credentials"
-
-	errNewClient = "cannot create new Service"
+	errNewClient                = "cannot create new Service"
 )
 
 type S4TService struct {
@@ -49,9 +53,18 @@ type S4TService struct {
 }
 
 var (
-	newS4TService = func(_ []byte) (*S4TService, error) {
-		s4t := s4t.Client{}
-		s4t_client, err := s4t.GetClientConnection()
+	newS4TService = func(creds []byte) (*S4TService, error) {
+		var result map[string]string
+		err := json.Unmarshal(creds, &result)
+		if err != nil {
+			return nil, errors.Wrap(err, errNewClient)
+		}
+		auth_req := read_config.FormatAuthRequ(
+			result["username"],
+			result["password"],
+			result["domain"],
+		)
+		s4t_client, err := s4t.GetClientConnection(*auth_req)
 		return &S4TService{
 			S4tClient: s4t_client,
 		}, err
@@ -100,33 +113,32 @@ type connector struct {
 // 3. Getting the credentials specified by the ProviderConfig.
 // 4. Using the credentials to form a client.
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
-	// cr, ok := mg.(*v1alpha1.BoardServiceInjection)
-	// if !ok {
-	// 	return nil, errors.New(errNotBoardServiceInjection)
-	// }
+	_, ok := mg.(*v1alpha1.BoardServiceInjection)
+	if !ok {
+		return nil, errors.New(errNotBoardServiceInjection)
+	}
 
-	// if err := c.usage.Track(ctx, mg); err != nil {
-	// 	return nil, errors.Wrap(err, errTrackPCUsage)
-	// }
-
-	// pc := &apisv1alpha1.ProviderConfig{}
-	// if err := c.kube.Get(ctx, types.NamespacedName{Name: cr.GetProviderConfigReference().Name}, pc); err != nil {
-	// 	return nil, errors.Wrap(err, errGetPC)
-	// }
-
-	// cd := pc.Spec.Credentials
-	// data, err := resource.CommonCredentialExtractor(ctx, cd.Source, c.kube, cd.CommonCredentialSelectors)
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, errGetCreds)
-	// }
-
-	// svc, err := c.newServiceFn(data)
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, errNewClient)
-	// }
-
-	// return &external{service: svc}, nil
-	return nil, nil
+	if err := c.usage.Track(ctx, mg); err != nil {
+		return nil, errors.Wrap(err, errTrackPCUsage)
+	}
+	// cr.GetProviderConfigReference().Name
+	pc_domain := &apisv1alpha1.ProviderConfig{}
+	if err := c.kube.Get(ctx, types.NamespacedName{Name: "s4t-provider-domain"}, pc_domain); err != nil {
+		return nil, errors.Wrap(err, errGetPC)
+	}
+	cd_domain := pc_domain.Spec.Credentials
+	data_domain, err := resource.CommonCredentialExtractor(ctx, cd_domain.Source, c.kube, cd_domain.CommonCredentialSelectors)
+	if err != nil {
+		return nil, errors.Wrap(err, errGetCreds)
+	}
+	log.Printf("\n\n####ERROR-LOG##################################################\n\n")
+	log.Println(string(data_domain))
+	log.Printf("\n\n####ERROR-LOG##################################################\n\n")
+	svc, err := c.newServiceFn(data_domain)
+	if err != nil {
+		return nil, errors.Wrap(err, errNewClient)
+	}
+	return &external{service: svc}, err
 }
 
 type external struct {
@@ -170,7 +182,6 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 	return managed.ExternalCreation{
 		// Optionally return any details that may be required to connect to the
 		// external resource. These will be stored as the connection secret.
-		ConnectionDetails: managed.ConnectionDetails{},
 	}, nil
 }
 
@@ -190,3 +201,4 @@ func (c *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 	return nil
 }
+
