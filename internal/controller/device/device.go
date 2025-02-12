@@ -136,9 +136,6 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 	if err != nil {
 		return nil, errors.Wrap(err, errGetCreds)
 	}
-	log.Printf("\n\n####ERROR-LOG##################################################\n\n")
-	log.Println(string(data_domain))
-	log.Printf("\n\n####ERROR-LOG##################################################\n\n")
 	svc, err := c.newServiceFn(data_domain)
 	if err != nil {
 		return nil, errors.Wrap(err, errNewClient)
@@ -159,7 +156,6 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	if !ok {
 		return managed.ExternalObservation{}, errors.New(errNotDevice)
 	}
-	log.Println("####ERROR")
 	// These fmt statements should be removed in the real implementation.
 	fmt.Printf("Observing: %+v", cr)
 	board, err := c.service.S4tClient.GetBoardDetail(cr.Spec.ForProvider.Uuid)
@@ -172,7 +168,7 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		return managed.ExternalObservation{ResourceExists: false}, nil
 	}
 	if cr.Spec.ForProvider.Code != board.Code {
-		return managed.ExternalObservation{ResourceUpToDate: false}, nil
+		return managed.ExternalObservation{ResourceUpToDate: false, ResourceExists: true}, nil
 	}
 
 	cr.Status.SetConditions(xpv1.Available())
@@ -203,15 +199,21 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 
 	board.Name = cr.Spec.ForProvider.Name
 	board.Code = cr.Spec.ForProvider.Code
+	board.Type = cr.Spec.ForProvider.Type
 
-	for index, location := range cr.Spec.ForProvider.Location {
-		board.Location[index].Altitude = location.Altitude
-		board.Location[index].Latitude = location.Latitude
-		board.Location[index].Longitude = location.Longitude
+	for _, location := range cr.Spec.ForProvider.Location {
+		board.Location = append(board.Location, &boards.Location{
+			Latitude:  location.Latitude,
+			Longitude: location.Longitude,
+			Altitude:  location.Altitude,
+		})
 	}
+
 	res, err := c.service.S4tClient.CreateBoard(board)
+	// log.Printf("\n\n####ERROR-LOG#### %s\n\n", res)
 	if err != nil {
-		log.Printf("####ERROR-LOG#### http.ResponseWriter, r *http.Request#### Error s4t client Board Create %q", err)
+		// log.Printf("\n\n####ERROR-LOG#### %s\n\n", res)
+		log.Printf("####ERROR-LOG####  Error s4t client Board Create %q", err)
 	}
 
 	cr.Spec.ForProvider.Uuid = res.Uuid

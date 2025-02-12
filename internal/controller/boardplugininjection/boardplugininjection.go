@@ -142,9 +142,6 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	fmt.Printf("Observing: %+v", cr)
 
 	injectedPlugin, err := c.service.S4tClient.GetBoardPlugins(cr.Spec.ForProvider.BoardUuid)
-	// log.Printf("\n\n####ERROR-LOG##################################################\n\n")
-	// log.Println(injectedPlugin)
-	// log.Printf("\n\n####ERROR-LOG##################################################\n\n")
 	if err != nil {
 		log.Printf("####ERROR-LOG#### Error s4t client BoardPlugin Get %q", err)
 		return managed.ExternalObservation{}, err
@@ -152,7 +149,7 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	found := false
 	for _, plugin := range injectedPlugin {
-		if plugin.UUID == cr.Spec.ForProvider.PluginUuid {
+		if plugin.Plugin == cr.Spec.ForProvider.PluginUuid {
 			found = true
 			break
 		}
@@ -173,13 +170,13 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 	if !ok {
 		return managed.ExternalCreation{}, errors.New(errNotBoardPluginInjection)
 	}
-
 	fmt.Printf("Creating: %+v", cr)
 	err := c.service.S4tClient.InjectPLuginBoard(
 		cr.Spec.ForProvider.BoardUuid,
 		map[string]interface{}{
 			"plugin": cr.Spec.ForProvider.PluginUuid,
 		})
+
 	if err != nil {
 		log.Printf("####ERROR-LOG#### Error s4t client BoardPlugin Inject %q", err)
 		return managed.ExternalCreation{}, err
@@ -200,7 +197,6 @@ func (c *external) Delete(ctx context.Context, mg resource.Managed) error {
 	if !ok {
 		return errors.New(errNotBoardPluginInjection)
 	}
-	log.Printf("\n\n###############################DELEETE#############\n\n")
 	fmt.Printf("Deleting: %+v", cr)
 	err := c.service.S4tClient.RemoveInjectedPlugin(cr.Spec.ForProvider.PluginUuid, cr.Spec.ForProvider.BoardUuid)
 	if err != nil {
