@@ -214,6 +214,7 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 	if err != nil {
 		// log.Printf("\n\n####ERROR-LOG#### %s\n\n", res)
 		log.Printf("####ERROR-LOG####  Error s4t client Board Create %q", err)
+		return managed.ExternalCreation{}, errors.New(errNewClient)
 	}
 
 	cr.Spec.ForProvider.Uuid = res.Uuid
@@ -242,6 +243,7 @@ func (c *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 		})
 	if err != nil {
 		log.Printf("####ERROR-LOG#### Error s4t client Board Update %q", err)
+		return managed.ExternalUpdate{}, errors.New(errNewClient)
 	}
 
 	cr.Spec.ForProvider.Uuid = resp.Uuid

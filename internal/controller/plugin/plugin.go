@@ -186,6 +186,7 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 	plugin, err := c.service.S4tClient.CreatePlugin(req)
 	if err != nil {
 		log.Printf("####ERROR-LOG#### Error s4t client Plugin Create %q", err)
+		return managed.ExternalCreation{}, errors.New(errNewClient)
 	}
 
 	cr.Spec.ForProvider.Uuid = plugin.UUID
@@ -208,6 +209,7 @@ func (c *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 	_, err := c.service.S4tClient.PacthPlugin(cr.Spec.ForProvider.Uuid, req)
 	if err != nil {
 		log.Printf("####ERROR-LOG#### Error s4t client Plugin Update %q", err)
+		return managed.ExternalUpdate{}, errors.New(errNewClient)
 	}
 
 	return managed.ExternalUpdate{
