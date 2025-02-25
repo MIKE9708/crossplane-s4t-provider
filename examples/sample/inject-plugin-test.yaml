@@ -1,0 +1,11 @@
+apiVersion: iot.s4t.crossplane.io/v1alpha1
+kind: BoardPluginInjection
+metadata:
+  name: "test-injection" 
+spec:
+  forProvider:
+    boardUuid: "95bdf12d-6d70-4ecd-821a-d9a289f35383"
+    pluginUuid: "9d998679-0698-46b1-bb07-c48c4677f603"
+  providerConfigRef:
+    name: s4t-provider-domain
+  deletionPolicy: Delete

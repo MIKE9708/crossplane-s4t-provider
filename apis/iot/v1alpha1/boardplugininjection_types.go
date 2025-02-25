@@ -27,7 +27,9 @@ import (
 
 // BoardPluginInjectionParameters are the configurable fields of a BoardPluginInjection.
 type BoardPluginInjectionParameters struct {
-	BoardUuid  string `json:"boardUuid,omitempty"`
+	// +kubebuilder:validation:Immutable
+	BoardUuid string `json:"boardUuid,omitempty"`
+	// +kubebuilder:validation:Immutable
 	PluginUuid string `json:"pluginUuid,omitempty"`
 }
 
@@ -47,8 +49,6 @@ type BoardPluginInjectionSpec struct {
 type BoardPluginInjectionStatus struct {
 	xpv1.ResourceStatus `json:",inline"`
 	AtProvider          BoardPluginInjectionObservation `json:"atProvider,omitempty"`
-	BoardUuid           string                          `json:"boardUuid,omitempty"`
-	PluginUuid          string                          `json:"pluginUuid,omitempty"`
 }
 
 // +kubebuilder:object:root=true

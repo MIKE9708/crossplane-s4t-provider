@@ -8,21 +8,13 @@ spec:
   providerConfigRef:
     name: default
   forProvider:
-    name: "My IoT Device"
-    uuid: "" 
-    type: "server"
-    status: 
+    name: "My-IoT-Device"
+    code: "Test-code"
+    type: "gateway"
     location:
       - latitude: "37.7749"
         longitude: "-122.4194"
         altitude: "30"
-        updated_at: []
-    lr_version: 
-    wstun_ip: 
-    agent: 
-    code: 
-    session: 
-    plugins:
-    services:
-
-
+  providerConfigRef:
+    name: s4t-provider-domain
+  deletionPolicy: Delete

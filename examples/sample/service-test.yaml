@@ -12,4 +12,3 @@ spec:
     name: s4t-provider-domain
   deletionPolicy: Delete
 
-

@@ -154,7 +154,7 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	if plugin.UUID == "" {
 		return managed.ExternalObservation{ResourceExists: false}, nil
 	}
-	if cr.Spec.ForProvider.Code != plugin.Code {
+	if cr.Spec.ForProvider.Name != plugin.Name {
 		return managed.ExternalObservation{ResourceUpToDate: false, ResourceExists: true}, nil
 	}
 
@@ -174,9 +174,10 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 	}
 	fmt.Printf("Creating: %+v", cr)
 
+	log.Printf("\n\n %s \n\n", cr.Spec.ForProvider.Parameters)
 	req := plugins.PluginReq{
 		Name:       cr.Spec.ForProvider.Name,
-		Parameters: runtime.RawExtension{Raw: []byte(`{}`)},
+		Parameters: runtime.RawExtension{Raw: cr.Spec.ForProvider.Parameters.Raw},
 		// cr.Spec.ForProvider.Parameters,
 		Code: cr.Spec.ForProvider.Code,
 		// Version:    cr.Spec.ForProvider.Version,
@@ -199,12 +200,10 @@ func (c *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 		return managed.ExternalUpdate{}, errors.New(errNotPlugin)
 	}
 	fmt.Printf("Updating: %+v", cr)
-
 	req := map[string]interface{}{
 		"name":       cr.Spec.ForProvider.Name,
-		"parameters": cr.Spec.ForProvider.Parameters,
+		"parameters": runtime.RawExtension{Raw: cr.Spec.ForProvider.Parameters.Raw},
 		"code":       cr.Spec.ForProvider.Code,
-		"version":    cr.Spec.ForProvider.Version,
 	}
 	_, err := c.service.S4tClient.PacthPlugin(cr.Spec.ForProvider.Uuid, req)
 	if err != nil {
@@ -229,4 +228,3 @@ func (c *external) Delete(ctx context.Context, mg resource.Managed) error {
 	}
 	return err
 }
-

@@ -39,16 +39,23 @@ type Location struct {
 
 // DeviceParameters are the configurable fields of a Device.
 type DeviceParameters struct {
-	Uuid      string     `json:"uuid,omitempty"`
-	Code      string     `json:"code,omitempty"`
-	Status    string     `json:"status,omitempty"`
-	Name      string     `json:"name,omitempty"`
-	Type      string     `json:"type,omitempty"`
-	Agent     string     `json:"agent,omitempty"`
-	Wstunip   string     `json:"wstun_ip,omitempty"`
-	Session   string     `json:"session,omitempty"`
+	// +kubebuilder:validation:Immutable
+	Uuid string `json:"uuid,omitempty"`
+	// +kubebuilder:validation:Immutable
+	Code   string `json:"code"`
+	Status string `json:"status,omitempty"`
+	Name   string `json:"name"`
+	// +kubebuilder:validation:Immutable
+	Type string `json:"type,omitempty"`
+	// +kubebuilder:validation:Immutable
+	Agent string `json:"agent,omitempty"`
+	// +kubebuilder:validation:Immutable
+	Wstunip string `json:"wstun_ip,omitempty"`
+	// +kubebuilder:validation:Immutable
+	Session string `json:"session,omitempty"`
+	// +kubebuilder:validation:Immutable
 	LRversion string     `json:"lr_version,omitempty"`
-	Location  []Location `json:"location,omitempty"`
+	Location  []Location `json:"location"`
 	Services  []string   `json:"services,omitempty"`
 	Plugins   []string   `json:"plugins,omitempty"`
 }
@@ -76,6 +83,9 @@ type DeviceStatus struct {
 // +kubebuilder:object:root=true
 
 // A Device is an example API type.
+// +kubebuilder:printcolumn:name="Board Name",type=string,JSONPath=".spec.Name"
+// +kubebuilder:printcolumn:name="Board Status",type=string,JSONPath=".spec.Status"
+// +kubebuilder:printcolumn:name="Board Location",type=string,JSONPath=".spec.Location"
 // +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
 // +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"

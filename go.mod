@@ -3,7 +3,7 @@ module github.com/crossplane/provider-s4t
 go 1.21.13
 
 require (
-	github.com/MIKE9708/s4t-sdk-go v0.0.0-20250211200317-183826f1543e
+	github.com/MIKE9708/s4t-sdk-go v0.0.0-20250212202808-5da507547e2e
 	github.com/alecthomas/kingpin/v2 v2.3.2
 	github.com/crossplane/crossplane-runtime v1.16.0
 	github.com/crossplane/crossplane-tools v0.0.0-20230925130601-628280f8bf79
@@ -90,4 +90,3 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
-

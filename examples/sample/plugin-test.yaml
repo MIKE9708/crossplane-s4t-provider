@@ -4,12 +4,10 @@ metadata:
   name: example-plugin
 spec:
   forProvider:
-    # Required fields from the CRD
-    name: my-plugin
+    name: my-plugin-1
     code: "from iotronic_lightningrod.plugins import Plugin\n\nfrom oslo_log import log as logging\n\nLOG = logging.getLogger(__name__)\n\n\n# User imports\n\n\nclass Worker(Plugin.Plugin):\n    def __init__(self, uuid, name, q_result, params=None):\n        super(Worker, self).__init__(uuid, name, q_result, params)\n\n    def run(self):\n        LOG.info(\"Input parameters: \" + str(self.params))\n        LOG.info(\"Plugin \" + self.name + \" process completed!\")\n        self.q_result.put(\"ZERO RESULT\")"
-    parameters: {}
+    parameters: {"name": "pippo"}
   providerConfigRef:
     name: s4t-provider-domain
   deletionPolicy: Delete
-
 

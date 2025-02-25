@@ -142,6 +142,10 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	fmt.Printf("Observing: %+v", cr)
 
 	injectedPlugin, err := c.service.S4tClient.GetBoardPlugins(cr.Spec.ForProvider.BoardUuid)
+	board, err := c.service.S4tClient.GetBoardDetail(cr.Spec.ForProvider.BoardUuid)
+	if board.Status != "online" {
+
+	}
 	if err != nil {
 		log.Printf("####ERROR-LOG#### Error s4t client BoardPlugin Get %q", err)
 		return managed.ExternalObservation{}, err
@@ -205,4 +209,3 @@ func (c *external) Delete(ctx context.Context, mg resource.Managed) error {
 	}
 	return nil
 }
-

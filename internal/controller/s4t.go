@@ -18,10 +18,10 @@ package controller
 
 import (
 	"github.com/crossplane/crossplane-runtime/pkg/controller"
-	"github.com/crossplane/provider-s4t/internal/controller/boardplugininjection"
-	"github.com/crossplane/provider-s4t/internal/controller/boardserviceinjection"
 	"github.com/crossplane/provider-s4t/internal/controller/config"
 	"github.com/crossplane/provider-s4t/internal/controller/device"
+	"github.com/crossplane/provider-s4t/internal/controller/boardplugininjection"
+	"github.com/crossplane/provider-s4t/internal/controller/boardserviceinjection"
 	"github.com/crossplane/provider-s4t/internal/controller/plugin"
 	"github.com/crossplane/provider-s4t/internal/controller/service"
 	ctrl "sigs.k8s.io/controller-runtime"

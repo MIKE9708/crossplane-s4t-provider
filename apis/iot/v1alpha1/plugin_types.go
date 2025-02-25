@@ -28,17 +28,18 @@ import (
 
 // PluginParameters are the configurable fields of a Plugin.
 type PluginParameters struct {
-	Uuid       string               `json:"uuid"`
+	// +kubebuilder:validation:Immutable
+	Uuid       string               `json:"uuid,omitempty"`
 	Name       string               `json:"name"`
-	Parameters runtime.RawExtension `json:"parameters,omitempty"`
+	Parameters runtime.RawExtension `json:"parameters"`
 	Code       string               `json:"code"`
-	Version    string               `json:"version,omitempty"`
+	// +kubebuilder:validation:Immutable
+	Version string `json:"version,omitempty"`
 }
 
 // PluginObservation are the observable fields of a Plugin.
 type PluginObservation struct {
-	Code string `json:"code"`
-	Uuid string `json:"uuid"`
+	Name string `json:"name"`
 }
 
 // A PluginSpec defines the desired state of a Plugin.
@@ -51,11 +52,10 @@ type PluginSpec struct {
 type PluginStatus struct {
 	xpv1.ResourceStatus `json:",inline"`
 	AtProvider          PluginObservation `json:"atProvider,omitempty"`
-	Uuid                string            `json:"uuid"`
 }
 
 // +kubebuilder:object:root=true
-
+// +kubebuilder:printcolumn:name="Name",type=string,JSONPath=".spec.Name"
 // A Plugin is an example API type.
 // +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"

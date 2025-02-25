@@ -119,6 +119,10 @@ spec:
                     type: string
                   wstun_ip:
                     type: string
+                required:
+                - code
+                - location
+                - name
                 type: object
               managementPolicies:
                 default:

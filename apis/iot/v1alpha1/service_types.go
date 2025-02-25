@@ -27,6 +27,7 @@ import (
 
 // ServiceParameters are the configurable fields of a Service.
 type ServiceParameters struct {
+	// +kubebuilder:validation:Immutable
 	Uuid     string `json:"uuid,omitempty"`
 	Name     string `json:"name"`
 	Project  string `json:"project,omitempty"`
@@ -37,9 +38,6 @@ type ServiceParameters struct {
 // ServiceObservation are the observable fields of a Service.
 type ServiceObservation struct {
 	ObservableField string `json:"observableField,omitempty"`
-	Uuid            string `json:"uuid,omitempty"`
-	Port            uint   `json:"port"`
-	Protocol        string `json:"protocol"`
 }
 
 // A ServiceSpec defines the desired state of a Service.
@@ -52,12 +50,14 @@ type ServiceSpec struct {
 type ServiceStatus struct {
 	xpv1.ResourceStatus `json:",inline"`
 	AtProvider          ServiceObservation `json:"atProvider,omitempty"`
-	Uuid                string             `json:"uuid,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
 // A Service is an example API type.
+// +kubebuilder:printcolumn:name="Name",type=string,JSONPath=".spec.Name"
+// +kubebuilder:printcolumn:name="Port",type=string,JSONPath=".spec.Port"
+// +kubebuilder:printcolumn:name="Protocol",type=string,JSONPath=".spec.Protocol"
 // +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
 // +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"

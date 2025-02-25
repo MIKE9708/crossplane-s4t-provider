@@ -27,7 +27,7 @@ with the following features that are meant to be refactored:
 5. Replace the *sample* group with your new group in apis/{provider}.go
 5. Replace the *mytype* type with your new type in internal/controller/{provider}.go
 5. Replace the default controller and ProviderConfig implementations with your own
-5. Run `make generate` to run code generation, linters, and tests.
+5. Run `make reviewable` to run code generation, linters, and tests.
 5. Run `make build` to build the provider.
 
 Refer to Crossplane's [CONTRIBUTING.md] file for more information on how the
